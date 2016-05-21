@@ -9,6 +9,7 @@ class Player
     puts "What's the name of player #{@@players}?"
     @player_name = gets.chomp.strip.capitalize
     @is_computer = false
+    TicTacToe.header
   end
 end
 
@@ -22,7 +23,8 @@ end
 class Game
   @@screen_width = IO.console.winsize[1]
   attr_reader :p1_id, :p2_id, :over
-  LINES = [[1,2,3],[4,5,6],[7,8,9],[1,4,7],[2,5,8],[3,6,9],[1,5,9],[3,5,7]]
+  LINES = [[1, 2, 3], [4, 5, 6], [7, 8, 9], [1, 4, 7], [2, 5, 8],
+           [3, 6, 9], [1, 5, 9], [3, 5, 7]].freeze
 
   def initialize(p1, p2)
     @p1 = p1
@@ -40,10 +42,7 @@ class Game
     check_winning_condition
     if player.is_computer
       puts "\nComputer thinking..."
-      th1 = Thread.new { 9.times { sleep 0.5; print '.' } }
-      th2 = Thread.new { computer_move }
-      th1.join
-      th2.join
+      computer_move
     else
       puts "\n#{player.player_name}, where do you want to play?"
       position = gets.chomp.strip.to_i
@@ -58,13 +57,14 @@ class Game
   end
 
   def computer_move
-    position = Random.rand(9).to_i
-    if square_empty?(position)
+    th1 = Thread.new { 9.times { sleep 0.5; print '.' } }
+    th2 = Thread.new do
+      position = 5
+      position = Random.rand(1..9).to_i until square_empty?(position)
       @sq[position] = @p2_mark
-      return
-    else
-      computer_move
     end
+    th1.join
+    th2.join
   end
 
   def new_board
@@ -103,11 +103,12 @@ class Game
         @sq[position] == @p2_mark
       end
     end
-    game_over if !@win == 0 || @sq.none? { |pos| square_empty?(pos.to_i) }
+    game_over unless @win == 0
+    game_over if @sq.none? { |pos| square_empty?(pos.to_i) }
   end
 
   def game_over
-    puts '\nThe game is over.'
+    puts "\nThe game is over."
     if @win == 1
       puts "#{@p1.player_name} wins!"
     elsif @win == 2
@@ -118,7 +119,6 @@ class Game
     puts 'Thank you for playing!'
     exit
   end
-
 end
 
 module TicTacToe
@@ -137,15 +137,10 @@ module TicTacToe
     puts 'Do you want to play? (Y/N):'
     answer = gets.chomp.strip.downcase
 
-    if answer == 'y' || answer == 'n'
-      correct_answer = true
-    else
-      correct_answer = false
-    end
-
-    while !correct_answer
+    correct_answer = answer == 'y' || answer == 'n' ? true : false
+    until correct_answer
       header
-      puts "Wrong answer. Do you want to play? (Write Y or N): "
+      puts 'Wrong answer. Do you want to play? (Write Y or N):'
       answer = gets.chomp.strip.downcase
       correct_answer = true if answer == 'y' || answer == 'n'
     end
@@ -154,15 +149,15 @@ module TicTacToe
       new_game
     else
       header
-      puts "Thank you! Please come back again."
+      puts 'Thank you! Please come back again.'
       exit
     end
   end
 
   def self.number_of_players
     n_players = 0
-    while !n_players.between?(1,2)
-      puts "How many human players? (1/2): "
+    until n_players.between?(1, 2)
+      puts 'How many human players? (1/2):'
       n_players = gets.chomp.strip.to_i
       header
     end
@@ -170,17 +165,9 @@ module TicTacToe
   end
 
   def self.new_game
-    if number_of_players == 1
-      p1 = Player.new
-      header
-      p2 = ComputerPlayer.new
-      header
-    else
-      p1 = Player.new
-      header
-      p2 = Player.new
-      header
-    end
+    n_players = number_of_players
+    p1 = Player.new
+    p2 = n_players == 1 ? ComputerPlayer.new : Player.new
     first_player = Random.rand(2).to_i
     if first_player == 1
       puts "#{p1.player_name} plays first!"
@@ -191,7 +178,7 @@ module TicTacToe
     end
     sleep 2
     game = Game.new(p1, p2)
-    while !game.over
+    until game.over
       header
       game.print_board
       if first_player == 1
