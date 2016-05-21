@@ -11,10 +11,10 @@ def caesar_cipher(sentence, key)
   end.join
 end
 
-print "Give me a sentence: "
+print 'Give me a sentence: '
 sentence = gets.chomp.strip.split(//)
 
-print "Give me a cypher key: "
+print 'Give me a cypher key: '
 key = gets.chomp.strip.to_i
 
 cipher_text = caesar_cipher(sentence, key)
