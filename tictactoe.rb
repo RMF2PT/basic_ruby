@@ -1,24 +1,5 @@
 require 'io/console'
-
-class Player
-  attr_reader :player_name, :is_computer
-  @@players = 0
-
-  def initialize
-    @@players += 1
-    puts "What's the name of player #{@@players}?"
-    @player_name = gets.chomp.strip.capitalize
-    @is_computer = false
-    TicTacToe.header
-  end
-end
-
-class ComputerPlayer < Player
-  def initialize
-    @player_name = 'Computer'
-    @is_computer = true
-  end
-end
+require_relative 'player'
 
 class Game
   @@screen_width = IO.console.winsize[1]
@@ -167,7 +148,9 @@ module TicTacToe
   def self.new_game
     n_players = number_of_players
     p1 = Player.new
+    header
     p2 = n_players == 1 ? ComputerPlayer.new : Player.new
+    header
     first_player = Random.rand(2).to_i
     if first_player == 1
       puts "#{p1.player_name} plays first!"
